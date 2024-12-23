@@ -1,4 +1,4 @@
-import React, { useEffect} from 'react';
+import React, { useState,useEffect} from 'react';
 import Uppy from '@uppy/core';
 import { Dashboard } from '@uppy/react';
 import XHRUpload from '@uppy/xhr-upload';
@@ -6,6 +6,8 @@ import RemoteSources from '@uppy/remote-sources'
 import '@uppy/core/dist/style.css';
 import '@uppy/dashboard/dist/style.css';
 const FileUpload = () => {
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+
     const uppy = new Uppy({
         restrictions: { maxFileSize: 1000000, maxNumberOfFiles: 5, allowedFileTypes: ['image/*', 'video/*'] },
         autoProceed: false,
@@ -30,6 +32,18 @@ const FileUpload = () => {
     
       // Clean up Uppy instance on component unmount
       useEffect(() => {
+        uppy.on('upload-success', (file, response) => {
+          // Assuming `response.body` contains the file URL
+          setUploadedFiles(prevFiles => [
+            ...prevFiles,
+            {
+              id: file.id,
+              name: file.name,
+              url: response.body.url, // Update based on actual response format
+            },
+          ]);
+        });
+    
         // return () => uppy.close();
       }, []);
     
@@ -48,6 +62,17 @@ const FileUpload = () => {
         hideUploadButton={false}
         hideProgressAfterFinish={true}
       />
+
+        {/* Render uploaded files in a separate section */}
+        <div className="uploaded-files-container">
+        {uploadedFiles.map((file) => {
+          console.log(file)
+          return  <div key={file.id} className="uploaded-file">
+            <img src={file.url} alt={file.name} className="uploaded-image" />
+            <span>{file.name}</span>
+          </div>
+        })}
+      </div>
     </div>
   );
 };
